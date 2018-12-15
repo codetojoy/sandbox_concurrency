@@ -15,6 +15,7 @@ public class Runner {
     private static final int NUM_THREADS = 20;
     private static final int NUM_TASKS = 20;
     private static final long DELAY_IN_MILLIS = 10 * 1000;
+    private static final boolean DO_USE_POOL2 = true;
 
     private List<String> getNames() {
         List<String> names = new ArrayList<>();
@@ -25,22 +26,26 @@ public class Runner {
     }
 
     public void threadedGo() {
-        boolean usePool2 = true;
         List<String> names = getNames();
         ExecutorService service = Executors.newFixedThreadPool(NUM_THREADS);
+
         for (int id = 0; id < NUM_TASKS; id++) {
-            Task task = new Task(id, names, usePool2);
+            Task task = new Task(id, names, DO_USE_POOL2);
             service.execute(task);
         }
 
         try { Thread.sleep(DELAY_IN_MILLIS); } catch(Exception ex) {}
         service.shutdown();
 
-        if (usePool2) {
+        if (DO_USE_POOL2) {
             Pool2.logStats();
+            Pool2.clearCache();
         } else {
             Pool.logStats();
+            Pool.clearCache();
         }
+
+        Connection.logStats();
     }
 
     public static void main(String[] args) {

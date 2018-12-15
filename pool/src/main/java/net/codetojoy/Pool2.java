@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class Pool2 {
-    private static ConcurrentHashMap<String,String> cache = new ConcurrentHashMap<>();
+    private static ConcurrentHashMap<String,Connection> cache = new ConcurrentHashMap<>();
 
     protected static AtomicInteger numCalls = new AtomicInteger(0);
     protected static AtomicInteger numCacheHits = new AtomicInteger(0);
@@ -20,20 +20,29 @@ public class Pool2 {
         System.out.println("TRACER " + buffer.toString());
     }
 
-    private static void simulateLookup() {
+    private static Connection simulateLookup() {
         final long DELAY_IN_MILLIS = 300L;
         try { Thread.sleep(DELAY_IN_MILLIS); } catch(Exception ex) {}
+        return new Connection();
     }
 
-    public static String getConnection(String name) {
-        String result = null;
+    public static void clearCache() {
+        for (String key : cache.keySet()) {
+            Connection conn = cache.get(key);
+            conn.close();
+        }
+    }
+
+    // public static synchronized Connection getConnection(String name) {
+    public static Connection getConnection(String name) {
+        Connection result = null;
 
         numCalls.getAndIncrement();
 
         if (! cache.containsKey(name)) {
             numCacheMisses.getAndIncrement();
-            simulateLookup();
-            cache.putIfAbsent(name,name + numCalls.get());
+            Connection conn = simulateLookup();
+            cache.putIfAbsent(name,conn);
         } else {
             numCacheHits.getAndIncrement();
         }
