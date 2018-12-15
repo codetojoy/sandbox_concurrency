@@ -25,16 +25,22 @@ public class Runner {
     }
 
     public void threadedGo() {
+        boolean usePool2 = true;
         List<String> names = getNames();
         ExecutorService service = Executors.newFixedThreadPool(NUM_THREADS);
         for (int id = 0; id < NUM_TASKS; id++) {
-            Task task = new Task(id, names);
+            Task task = new Task(id, names, usePool2);
             service.execute(task);
         }
 
         try { Thread.sleep(DELAY_IN_MILLIS); } catch(Exception ex) {}
         service.shutdown();
-        Pool.logStats();
+
+        if (usePool2) {
+            Pool2.logStats();
+        } else {
+            Pool.logStats();
+        }
     }
 
     public static void main(String[] args) {
